@@ -2,4 +2,7 @@ let
   pkgs = import ./pkgs.nix;
 in
   # pkgs.nmap
-  pkgs.stdenv
+  # pkgs.stdenv
+  {
+    x = pkgs.nmap // {name="bar";};
+  }
