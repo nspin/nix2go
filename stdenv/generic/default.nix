@@ -1,4 +1,4 @@
-let lib = import ../../../lib; in lib.makeOverridable (
+let lib = import <nixpkgs/lib>; in lib.makeOverridable (
 
 { name ? "stdenv", preHook ? "", initialPath, cc, shell
 , allowedRequisites ? null, extraAttrs ? {}, overrides ? (self: super: {}), config
@@ -43,19 +43,19 @@ let lib = import ../../../lib; in lib.makeOverridable (
 
 let
   defaultNativeBuildInputs = extraNativeBuildInputs ++
-    [ ../../build-support/setup-hooks/move-docs.sh
-      ../../build-support/setup-hooks/compress-man-pages.sh
-      ../../build-support/setup-hooks/strip.sh
-      ../../build-support/setup-hooks/patch-shebangs.sh
+    [ <nixpkgs/pkgs/build-support/setup-hooks/move-docs.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/compress-man-pages.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/strip.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/patch-shebangs.sh>
     ]
       # FIXME this on Darwin; see
       # https://github.com/NixOS/nixpkgs/commit/94d164dd7#commitcomment-22030369
-    ++ lib.optional hostPlatform.isLinux ../../build-support/setup-hooks/audit-tmpdir.sh
+    ++ lib.optional hostPlatform.isLinux <nixpkgs/pkgs/build-support/setup-hooks/audit-tmpdir.sh>
     ++ [
-      ../../build-support/setup-hooks/multiple-outputs.sh
-      ../../build-support/setup-hooks/move-sbin.sh
-      ../../build-support/setup-hooks/move-lib64.sh
-      ../../build-support/setup-hooks/set-source-date-epoch-to-latest.sh
+      <nixpkgs/pkgs/build-support/setup-hooks/multiple-outputs.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/move-sbin.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/move-lib64.sh>
+      <nixpkgs/pkgs/build-support/setup-hooks/set-source-date-epoch-to-latest.sh>
       cc
     ];
 
@@ -122,9 +122,9 @@ let
       # Whether we should run paxctl to pax-mark binaries.
       needsPax = isLinux;
 
-      inherit (import ./make-derivation.nix {
-        inherit lib config stdenv;
-      }) mkDerivation;
+      mkDerivation = args: lib.overrideDerivation
+        ((import ./make-derivation.nix { inherit lib config stdenv; }).mkDerivation args)
+        (drv: { name = import ../../modify-name.nix drv.name; });
 
       # For convenience, bring in the library functions in lib/ so
       # packages don't have to do that themselves.

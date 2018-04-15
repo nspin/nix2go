@@ -88,8 +88,8 @@ rec {
         [
           (map (drv: drv.__spliced.buildBuild or drv) depsBuildBuild)
           (map (drv: drv.nativeDrv or drv) nativeBuildInputs
-             ++ lib.optional separateDebugInfo ../../build-support/setup-hooks/separate-debug-info.sh
-             ++ lib.optional stdenv.hostPlatform.isWindows ../../build-support/setup-hooks/win-dll-link.sh)
+             ++ lib.optional separateDebugInfo <nixpkgs/pkgs/build-support/setup-hooks/separate-debug-info.sh>
+             ++ lib.optional stdenv.hostPlatform.isWindows <nixpkgs/pkgs/build-support/setup-hooks/win-dll-link.sh>)
           (map (drv: drv.__spliced.buildTarget or drv) depsBuildTarget)
         ]
         [
@@ -141,6 +141,7 @@ rec {
           computedPropagatedImpureHostDeps =
             lib.unique (lib.concatMap (input: input.__propagatedImpureHostDeps or [])
               (lib.concatLists propagatedDependencies));
+
         in
         {
           # A hack to make `nix-env -qa` and `nix search` ignore broken packages.

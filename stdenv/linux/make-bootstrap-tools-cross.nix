@@ -6,7 +6,7 @@ let
     inherit crossSystem;
   };
 
-in with (import ../../../lib).systems.examples; {
+in with (import <nixpkgs/lib>).systems.examples; {
   armv5tel   = make sheevaplug;
   scaleway   = make scaleway-c1;
   pogoplug4  = make pogoplug4;

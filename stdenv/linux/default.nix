@@ -81,13 +81,13 @@ let
         shell = "${bootstrapTools}/bin/bash";
         initialPath = [bootstrapTools];
 
-        fetchurlBoot = import ../../build-support/fetchurl/boot.nix {
+        fetchurlBoot = import <nixpkgs/pkgs/build-support/fetchurl/boot.nix> {
           inherit system;
         };
 
         cc = if isNull prevStage.gcc-unwrapped
              then null
-             else lib.makeOverridable (import ../../build-support/cc-wrapper) {
+             else lib.makeOverridable (import <nixpkgs/pkgs/build-support/cc-wrapper>) {
           name = "${name}-gcc-wrapper";
           nativeTools = false;
           propagateDoc = false;
@@ -164,7 +164,7 @@ in
         '';
       };
       gcc-unwrapped = bootstrapTools;
-      binutils = import ../../build-support/bintools-wrapper {
+      binutils = import <nixpkgs/pkgs/build-support/bintools-wrapper> {
         name = "bootstrap-stage0-binutils-wrapper";
         nativeTools = false;
         nativeLibc = false;
@@ -281,7 +281,7 @@ in
         };
       };
 
-      gcc = lib.makeOverridable (import ../../build-support/cc-wrapper) {
+      gcc = lib.makeOverridable (import <nixpkgs/pkgs/build-support/cc-wrapper>) {
         nativeTools = false;
         nativeLibc = false;
         isGNU = true;

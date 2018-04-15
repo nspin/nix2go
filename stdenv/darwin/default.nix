@@ -70,7 +70,7 @@ in rec {
       coreutils = { name = "${name}-coreutils"; outPath = bootstrapTools; };
       gnugrep   = { name = "${name}-gnugrep";   outPath = bootstrapTools; };
 
-      bintools = import ../../build-support/bintools-wrapper {
+      bintools = import <nixpkgs/pkgs/build-support/bintools-wrapper> {
         inherit shell;
         inherit (last) stdenvNoCC;
 
@@ -81,7 +81,7 @@ in rec {
         bintools     = { name = "${name}-binutils"; outPath = bootstrapTools; };
       };
 
-      cc = if isNull last then "/dev/null" else import ../../build-support/cc-wrapper {
+      cc = if isNull last then "/dev/null" else import <nixpkgs/pkgs/build-support/cc-wrapper> {
         inherit shell;
         inherit (last) stdenvNoCC;
 
@@ -120,7 +120,7 @@ in rec {
         '';
         initialPath  = [ bootstrapTools ];
 
-        fetchurlBoot = import ../../build-support/fetchurl {
+        fetchurlBoot = import <nixpkgs/pkgs/build-support/fetchurl> {
           inherit lib;
           stdenvNoCC = stage0.stdenv;
           curl = bootstrapTools;
@@ -348,7 +348,7 @@ in rec {
     initialPath = import ../common-path.nix { inherit pkgs; };
     shell       = "${pkgs.bash}/bin/bash";
 
-    cc = lib.callPackageWith {} ../../build-support/cc-wrapper {
+    cc = lib.callPackageWith {} <nixpkgs/pkgs/build-support/cc-wrapper> {
       inherit (pkgs) stdenvNoCC;
       inherit shell;
       nativeTools = false;
