@@ -67,12 +67,12 @@ let
   '';
 
   extraNativeBuildInputsCygwin = [
-    ../cygwin/all-buildinputs-as-runtimedep.sh
-    ../cygwin/wrap-exes-to-find-dlls.sh
+    <nixpkgs/pkgs/stdenv/cygwin/all-buildinputs-as-runtimedep.sh>
+    <nixpkgs/pkgs/stdenv/cygwin/wrap-exes-to-find-dlls.sh>
   ] ++ (if system == "i686-cygwin" then [
-    ../cygwin/rebase-i686.sh
+    <nixpkgs/pkgs/stdenv/cygwin/rebase-i686.sh>
   ] else if system == "x86_64-cygwin" then [
-    ../cygwin/rebase-x86_64.sh
+    <nixpkgs/pkgs/stdenv/cygwin/rebase-x86_64.sh>
   ] else []);
 
   # A function that builds a "native" stdenv (one that uses tools in
@@ -119,7 +119,7 @@ in
     };
     stdenvNoCC = stdenv;
 
-    cc = import ../../build-support/cc-wrapper {
+    cc = import <nixpkgs/pkgs/build-support/cc-wrapper> {
       name = "cc-native";
       nativeTools = true;
       nativeLibc = true;
@@ -130,7 +130,7 @@ in
       inherit stdenvNoCC;
     };
 
-    fetchurl = import ../../build-support/fetchurl {
+    fetchurl = import <nixpkgs/pkgs/build-support/fetchurl> {
       inherit lib stdenvNoCC;
       # Curl should be in /usr/bin or so.
       curl = null;

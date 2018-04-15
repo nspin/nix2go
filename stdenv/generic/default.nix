@@ -7,7 +7,7 @@ let lib = import <nixpkgs/lib>; in lib.makeOverridable (
   # (see all-packages.nix).
   fetchurlBoot
 
-, setupScript ? ./setup.sh
+, setupScript ? <nixpkgs/pkgs/stdenv/generic/setup.sh>
 
 , extraNativeBuildInputs ? []
 , extraBuildInputs ? []
@@ -77,7 +77,7 @@ let
 
       builder = shell;
 
-      args = ["-e" ./builder.sh];
+      args = ["-e" <nixpkgs/pkgs/stdenv/generic/builder.sh>];
 
       setup = setupScript;
 
@@ -123,7 +123,7 @@ let
       needsPax = isLinux;
 
       mkDerivation = args: lib.overrideDerivation
-        ((import ./make-derivation.nix { inherit lib config stdenv; }).mkDerivation args)
+        ((import <nixpkgs/pkgs/stdenv/generic/make-derivation.nix> { inherit lib config stdenv; }).mkDerivation args)
         (drv: { name = import ../../modify-name.nix drv.name; });
 
       # For convenience, bring in the library functions in lib/ so

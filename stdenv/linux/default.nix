@@ -9,18 +9,18 @@
 , bootstrapFiles ?
   let table = {
     "glibc" = {
-      "i686-linux" = import ./bootstrap-files/i686.nix;
-      "x86_64-linux" = import ./bootstrap-files/x86_64.nix;
-      "armv5tel-linux" = import ./bootstrap-files/armv5tel.nix;
-      "armv6l-linux" = import ./bootstrap-files/armv6l.nix;
-      "armv7l-linux" = import ./bootstrap-files/armv7l.nix;
-      "aarch64-linux" = import ./bootstrap-files/aarch64.nix;
-      "mipsel-linux" = import ./bootstrap-files/loongson2f.nix;
+      "i686-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/i686.nix>;
+      "x86_64-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/x86_64.nix>;
+      "armv5tel-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/armv5tel.nix>;
+      "armv6l-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/armv6l.nix>;
+      "armv7l-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/armv7l.nix>;
+      "aarch64-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/aarch64.nix>;
+      "mipsel-linux" = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/loongson2f.nix>;
     };
     "musl" = {
-      "aarch64-linux" = import ./bootstrap-files/aarch64-musl.nix;
-      "armv6l-linux"  = import ./bootstrap-files/armv6l-musl.nix;
-      "x86_64-linux"  = import ./bootstrap-files/x86_64-musl.nix;
+      "aarch64-linux" = import <nixpkgs/pkgs/stdenv/linux./bootstrap-files/aarch64-musl.nix>;
+      "armv6l-linux"  = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/armv6l-musl.nix>;
+      "x86_64-linux"  = import <nixpkgs/pkgs/stdenv/linux/bootstrap-files/x86_64-musl.nix>;
     };
   };
   archLookupTable = table.${localSystem.libc}
@@ -52,7 +52,7 @@ let
 
 
   # Download and unpack the bootstrap tools (coreutils, GCC, Glibc, ...).
-  bootstrapTools = import (if localSystem.libc == "musl" then ./bootstrap-tools-musl else ./bootstrap-tools) { inherit system bootstrapFiles; };
+  bootstrapTools = import (if localSystem.libc == "musl" then <nixpkgs/pkgs/stdenv/linux/bootstrap-tools-musl> else <nixpkgs/pkgs/stdenv/linux/bootstrap-tools>) { inherit system bootstrapFiles; };
 
   getLibc = stage: stage.${localSystem.libc};
 
@@ -325,7 +325,7 @@ in
       '';
 
       initialPath =
-        ((import ../common-path.nix) {pkgs = prevStage;});
+        ((import <nixpkgs/pkgs/stdenv/common-path.nix>) {pkgs = prevStage;});
 
       extraNativeBuildInputs = [ prevStage.patchelf prevStage.paxctl ] ++
         # Many tarballs come with obsolete config.sub/config.guess that don't recognize aarch64.

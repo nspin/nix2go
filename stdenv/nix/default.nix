@@ -21,9 +21,9 @@ bootStages ++ [
         export NIX_IGNORE_LD_THROUGH_GCC=1
       '';
 
-      initialPath = (import ../common-path.nix) { pkgs = prevStage; };
+      initialPath = (import <nixpkgs/pkgs/stdenv/common-path.nix>) { pkgs = prevStage; };
 
-      cc = import ../../build-support/cc-wrapper {
+      cc = import <nixpkgs/pkgs/build-support/cc-wrapper> {
         nativeTools = false;
         nativePrefix = lib.optionalString hostPlatform.isSunOS "/usr";
         nativeLibc = true;

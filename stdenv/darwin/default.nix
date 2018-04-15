@@ -44,11 +44,11 @@ in rec {
 
     name    = "bootstrap-tools";
     builder = bootstrapFiles.sh; # Not a filename! Attribute 'sh' on bootstrapFiles
-    args    = [ ./unpack-bootstrap-tools.sh ];
+    args    = [ <nixpkgs/pkgs/stdenv/darwin/unpack-bootstrap-tools.sh> ];
 
     inherit (bootstrapFiles) mkdir bzip2 cpio tarball;
     reexportedLibrariesFile =
-      ../../os-specific/darwin/apple-source-releases/Libsystem/reexported_libraries;
+      <nixpkgs/pkgs/os-specific/darwin/apple-source-releases/Libsystem/reexported_libraries>;
 
     __impureHostDeps = commonImpureHostDeps;
   };
@@ -135,7 +135,7 @@ in rec {
           parent = last;
 
           # This is used all over the place so I figured I'd just leave it here for now
-          secure-format-patch = ./darwin-secure-format.patch;
+          secure-format-patch = <nixpkgs/pkgs/stdenv/darwin/darwin-secure-format.patch>;
         };
         overrides  = self: super: (overrides self super) // { fetchurl = thisStdenv.fetchurlBoot; };
       };
@@ -168,7 +168,7 @@ in rec {
           ln -s ${bootstrapTools}/include/c++      $out/include/c++
         '';
         linkCxxAbi = false;
-        setupHook = ../../development/compilers/llvm/3.9/libc++/setup-hook.sh;
+        setupHook = <nixpkgs/pkgs/development/compilers/llvm/3.9/libc++/setup-hook.sh>;
       };
 
       libcxxabi = stdenv.mkDerivation {
@@ -345,7 +345,7 @@ in rec {
     __stdenvImpureHostDeps = commonImpureHostDeps;
     __extraImpureHostDeps = commonImpureHostDeps;
 
-    initialPath = import ../common-path.nix { inherit pkgs; };
+    initialPath = import <nixpkgs/pkgs/stdenv/common-path.nix> { inherit pkgs; };
     shell       = "${pkgs.bash}/bin/bash";
 
     cc = lib.callPackageWith {} <nixpkgs/pkgs/build-support/cc-wrapper> {
@@ -372,7 +372,7 @@ in rec {
       shellPackage = pkgs.bash;
 
       # This is used all over the place so I figured I'd just leave it here for now
-      secure-format-patch = ./darwin-secure-format.patch;
+      secure-format-patch = <nixpkgs/pkgs/stdenv/darwin/darwin-secure-format.patch>;
     };
 
     allowedRequisites = (with pkgs; [
