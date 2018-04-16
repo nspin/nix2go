@@ -122,9 +122,9 @@ let
       # Whether we should run paxctl to pax-mark binaries.
       needsPax = isLinux;
 
-      mkDerivation = args: lib.overrideDerivation
-        ((import <nixpkgs/pkgs/stdenv/generic/make-derivation.nix> { inherit lib config stdenv; }).mkDerivation args)
-        (drv: { name = import ../../modify-name.nix drv.name; });
+      inherit (import ./make-derivation.nix {
+        inherit lib config stdenv;
+      }) mkDerivation;
 
       # For convenience, bring in the library functions in lib/ so
       # packages don't have to do that themselves.
