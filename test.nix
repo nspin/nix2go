@@ -1,8 +1,11 @@
-with import <nixpkgs> {};
+let
+  nixpkgs = import <nixpkgs> {};
 
-callPackage ./. {} {
-  inputs = [ nmap ];
-  prefix = "/tmp/foo/";
-  suffix = ".log";
-  excludes = [ "/man/" "/doc/" ];
-}
+in nixpkgs.callPackage ./. {}
+
+# callPackage ./. {} {
+#   inputs = [ nmap ];
+#   prefix = "/tmp/foo/";
+#   suffix = ".log";
+#   excludes = [ "/man/" "/doc/" ];
+# }
