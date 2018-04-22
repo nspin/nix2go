@@ -15,7 +15,8 @@ let
       buildInputs = [ perl ];
       passthru = {
         inherit subMap;
-        path = drv.outPath;
+        oldPath = drv.outPath;
+        newPath = builtins.getAttr drv.outPath subMap;
       };
     } ''
       ${python3}/bin/python3 ${./nix2go.py} ${drv} $out ${subArgs} ${excludeArgs}
@@ -41,8 +42,8 @@ let
       cmd = ''
         mkdir $out
         ${lib.concatMap (s: ''
-          mkdir -p $out${builtins.getAttr s.path subMap}
-          cp -a ${s}/. "$out${builtins.getAttr s.path subMap}"
+          mkdir -p $out${s.newPath}
+          cp -a ${s}/. "$out${s.newPath}"
         '') substituteds}
       '';
     } ''
