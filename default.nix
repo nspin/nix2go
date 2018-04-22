@@ -39,10 +39,9 @@ let
       };
     } ''
       mkdir $out
-      echo MAKE $out
       ${lib.concatStrings (lib.mapAttrsToList (k: v: ''
         mkdir -p $out${v}
-        cp -r ${k} "$out${v}"
+        cp -a ${k}/. "$out${v}"
       '') subMap)}
     '';
 

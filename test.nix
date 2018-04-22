@@ -17,14 +17,3 @@ rec {
   };
 
 }
-# here.nix2go {
-#   rootPaths = [ nixpkgs.nmap ];
-#   script = ./sub.py;
-# }
-
-# callPackage ./. {} {
-#   inputs = [ nmap ];
-#   prefix = "/tmp/foo/";
-#   suffix = ".log";
-#   excludes = [ "/man/" "/doc/" ];
-# }

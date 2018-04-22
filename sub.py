@@ -1,2 +1,3 @@
 def f(x):
-    return '/foo' + x[4:-4] + '.log'
+    prefix = '/tmp/foobar/'
+    return prefix + x[len(prefix):]
