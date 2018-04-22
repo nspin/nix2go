@@ -66,8 +66,8 @@ def main():
     args = p.parse_args()
 
     root_in = Path(args.root_in)
-    root_out = Path(args.root_out)
-    root_out.mkdir()
+    root_out = Path(args.root_out)/Path(next(v for k, v in args.substitute if k == args.root_in)).relative_to('/')
+    root_out.mkdir(parents=True)
 
     excludes = [ re.compile(e) for e in args.exclude ]
     def exclude(path):

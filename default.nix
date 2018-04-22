@@ -15,8 +15,6 @@ let
       buildInputs = [ perl ];
       passthru = {
         inherit subMap;
-        oldPath = drv.outPath;
-        newPath = builtins.getAttr drv.outPath subMap;
       };
     } ''
       ${python3}/bin/python3 ${./nix2go.py} ${drv} $out ${subArgs} ${excludeArgs}
@@ -36,26 +34,16 @@ let
     let
       subMap = mergeSubMaps (map (builtins.getAttr "subMap") substituteds);
     in runCommand "nix2go-bundle" {
+      inherit substituteds;
       passthru = {
         inherit subMap;
       };
-      cmd = ''
-        mkdir $out
-        ${lib.concatMap (s: ''
-          mkdir -p $out${s.newPath}
-          cp -a ${s}/. "$out${s.newPath}"
-        '') substituteds}
-      '';
     } ''
-      eval "$(cmd)"
+      mkdir $out
+      for s in "$substituteds"; do
+        cp -a $s/. $out
+      done
     '';
-    # } ''
-    #   mkdir $out
-    #   ${lib.concatMap (s: ''
-    #     mkdir -p $out${builtins.getAttr "${s.out}" subMap}
-    #     cp -a ${s.path}/. "$out${builtins.getAttr "${s}" subMap}"
-    #   '') substituteds}
-    # '';
 
   nix2go = { rootPaths, script, excludes ? [] }:
     bundle (
