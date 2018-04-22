@@ -1,19 +1,19 @@
-let
-  pkgs = import <nixpkgs> {};
-  h = pkgs.callPackage ./. {};
-in
+with import <nixpkgs> {};
+with callPackage ./. {};
 
-rec {
-  subMap = h.mkSubMapPython ./sub.py [ pkgs.nmap ];
+    # substitute {
+    #     drv = nmap;
+    #     subMap = mkSubMapPython ./sub.py [ nmap ];
+    # }
 
-  nmp = h.substitute {
-    path = pkgs.nmap;
-    inherit subMap;
-  };
+bundle (
+    [(substitute {
+        drv = nmap;
+        subMap = mkSubMapPython ./sub.py [ nmap ];
+    })]
+)
 
-  bndl = h.nix2go {
-    rootPaths = [ pkgs.nmap ];
-    script = ./sub.py;
-  };
-
-}
+# nix2go {
+#   rootPaths = [ nmap ];
+#   script = ./sub.py;
+# }

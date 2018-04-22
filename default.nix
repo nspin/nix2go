@@ -7,7 +7,7 @@ let
       ${python3}/bin/python3 ${./mk_sub_map.py} ${script} < ${closureInfo { inherit rootPaths; }}/store-paths > $out
     '');
 
-  substitute = { path, subMap, excludes ? [] }:
+  substitute = { drv, subMap, excludes ? [] }:
     let
       subArgs = lib.concatStrings (lib.mapAttrsToList (k: v: " -s '${k}' '${v}'") subMap);
       excludeArgs = lib.concatMapStrings (e: " -e '${e}'") excludes;
@@ -15,9 +15,10 @@ let
       buildInputs = [ perl ];
       passthru = {
         inherit subMap;
+        path = drv.outPath;
       };
     } ''
-      ${python3}/bin/python3 ${./nix2go.py} ${path} $out ${subArgs} ${excludeArgs}
+      ${python3}/bin/python3 ${./nix2go.py} ${drv} $out ${subArgs} ${excludeArgs}
     '';
 
   mergeSubMaps =
@@ -37,13 +38,23 @@ let
       passthru = {
         inherit subMap;
       };
+      cmd = ''
+        mkdir $out
+        ${lib.concatMap (s: ''
+          mkdir -p $out${builtins.getAttr s.path subMap}
+          cp -a ${s}/. "$out${builtins.getAttr s.path subMap}"
+        '') substituteds}
+      '';
     } ''
-      mkdir $out
-      ${lib.concatStrings (lib.mapAttrsToList (k: v: ''
-        mkdir -p $out${v}
-        cp -a ${k}/. "$out${v}"
-      '') subMap)}
+      eval "$(cmd)"
     '';
+    # } ''
+    #   mkdir $out
+    #   ${lib.concatMap (s: ''
+    #     mkdir -p $out${builtins.getAttr "${s.out}" subMap}
+    #     cp -a ${s.path}/. "$out${builtins.getAttr "${s}" subMap}"
+    #   '') substituteds}
+    # '';
 
   nix2go = { rootPaths, script, excludes ? [] }:
     bundle (
@@ -55,6 +66,7 @@ let
         rootPaths
     );
 
-in rec {
-  inherit mkSubMapPython substitute bundle nix2go;
+in {
+  inherit substitute bundle nix2go;
+  inherit mkSubMapPython;
 }
