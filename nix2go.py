@@ -5,12 +5,23 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from argparse import ArgumentParser
 from collections import defaultdict
+from importlib.util import spec_from_file_location, module_from_spec
 
 
-def nix2go(root_in, root_out, exclude, pairs):
+def load_script(path):
+    spec = spec_from_file_location('f', path)
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.f
+
+
+def nix2go(out, exclude, pairs):
     def f(old, new):
-        if not exclude(old):
+        if exclude(old):
+            print('ignoring: ' + old)
+        else:
             if old.is_symlink():
+                print('symlink : {} -> {}'.format(old, new))
                 os.makedirs(new.parent, exist_ok=True)
                 old_targ = os.readlink(old)
                 new_targ = old_targ
@@ -20,6 +31,7 @@ def nix2go(root_in, root_out, exclude, pairs):
                 # new.symlink_to(new_targ) # ?
                 os.symlink(new_targ, new)
             elif old.is_file():
+                print('file    : {} -> {}'.format(old, new))
                 os.makedirs(new.parent, exist_ok=True)
                 with old.open('r') as fin:
                     with new.open('w') as fout:
@@ -31,7 +43,9 @@ def nix2go(root_in, root_out, exclude, pairs):
                     f(child, new/child.relative_to(old))
             else:
                 assert False
-    return f(root_in, root_out)
+
+    for old, new in pairs:
+        f(Path(old), out/Path(new).relative_to('/'))
 
 
 def pipes(pairs, fin, fout):
@@ -59,21 +73,31 @@ def mk_args(old, new):
 
 def main():
     p = ArgumentParser()
-    p.add_argument('root_in', metavar='ROOT_IN')
-    p.add_argument('root_out', metavar='ROOT_OUT')
-    p.add_argument('-s', '--substitute', metavar=('STRING_1', 'STRING_2'), nargs=2, default=[], action='append')
+    p.add_argument('script', metavar='SCRIPT')
+    p.add_argument('out', metavar='OUT')
     p.add_argument('-e', '--exclude', metavar='PATTERN', default=[], action='append')
     args = p.parse_args()
 
-    root_in = Path(args.root_in)
-    root_out = Path(args.root_out)/Path(next(v for k, v in args.substitute if k == args.root_in)).relative_to('/')
-    root_out.mkdir(parents=True)
+    f = load_script(args.script)
+
+    out = Path(args.out)
+    out.mkdir()
 
     excludes = [ re.compile(e) for e in args.exclude ]
     def exclude(path):
         return any(e.search(path.as_posix()) is not None for e in excludes)
 
-    nix2go(root_in, root_out, exclude, args.substitute)
+    print('\nSUBSTITUTIONS:')
+    pairs = []
+    for line in sys.stdin:
+        old_store_path = line.strip()
+        new_store_path = f(old_store_path)
+        assert len(old_store_path) == len(new_store_path)
+        pairs.append((old_store_path, new_store_path))
+        print('{} -> {}'.format(old_store_path, new_store_path))
+
+    print('\nPROGRESS:')
+    nix2go(out, exclude, pairs)
 
 
 if __name__ == '__main__':

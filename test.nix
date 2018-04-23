@@ -1,19 +1,19 @@
 with import <nixpkgs> {};
-with callPackage ./. {};
+callPackage ./. {}
 
     # substitute {
     #     drv = nmap;
     #     subMap = mkSubMapPython ./sub.py [ nmap ];
     # }
 
-bundle (
-    [(substitute {
-        drv = nmap;
-        subMap = mkSubMapPython ./sub.py [ nmap ];
-    })]
-)
+# bundle (
+#     [(substitute {
+#         drv = nmap;
+#         subMap = mkSubMapPython ./sub.py [ nmap ];
+#     })]
+# )
 
-# nix2go {
-#   rootPaths = [ nmap ];
-#   script = ./sub.py;
-# }
+{
+  rootPaths = [ nmap ];
+  script = ./sub.py;
+}
