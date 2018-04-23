@@ -89,11 +89,14 @@ def main():
 
     print('\nSUBSTITUTIONS:', flush=True)
     pairs = []
+    seen = set()
     for line in sys.stdin:
         old_store_path = line.strip()
         new_store_path = f(old_store_path)
         assert len(old_store_path) == len(new_store_path)
+        assert new_store_path not in seen
         pairs.append((old_store_path, new_store_path))
+        seen.add(new_store_path)
         print('{} -> {}'.format(old_store_path, new_store_path))
 
     print('\nPROGRESS:', flush=True)
