@@ -41,8 +41,8 @@ create the following bundle of directories with no dependencies on the Nix store
 ## Simple Example
 
 
-`exmaple.nix`:
 ```
+>>> cat example.nix
 with import <nixpkgs> {};
 
 let
@@ -60,15 +60,12 @@ in rec {
   };
 
 }
-```
-`example.py`
-```
+
+>>> cat example.py
 def f(x):
     prefix = '/tmp/nothingtoseehere/'
     return prefix + x[len(prefix):]
-```
 
-```
 >>> bundle=$(nix-build example.nix -A bundle)
 >>> echo $bundle
 /nix/store/7q59cm4w9l3v6qx94clb62pf49rrlc4p-nix2go-bundle
@@ -97,8 +94,6 @@ Now execute `/tmp/nothingtoseehere/gywzgvysws4y2lx7w99qq-entry.sh` on that serve
 / # which nmap
 /tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70/bin/nmap
 ```
-
->>> ./test-bundle.sh /tmp/nothingtoseehere $bundle "$entry"
 
 ## Another Example
 
