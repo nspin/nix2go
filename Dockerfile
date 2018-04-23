@@ -1,2 +1,2 @@
 FROM scratch
-ADD result /
+ADD Dockerfile /

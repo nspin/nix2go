@@ -18,10 +18,10 @@ def load_script(path):
 def nix2go(out, exclude, pairs):
     def f(old, new):
         if exclude(old):
-            print('ignoring: ' + old)
+            print('ignoring: {}'.format(old), flush=True)
         else:
             if old.is_symlink():
-                print('symlink : {} -> {}'.format(old, new))
+                print('symlink : {} -> {}'.format(old, new), flush=True)
                 os.makedirs(new.parent, exist_ok=True)
                 old_targ = os.readlink(old)
                 new_targ = old_targ
@@ -31,7 +31,7 @@ def nix2go(out, exclude, pairs):
                 # new.symlink_to(new_targ) # ?
                 os.symlink(new_targ, new)
             elif old.is_file():
-                print('file    : {} -> {}'.format(old, new))
+                print('file    : {} -> {}'.format(old, new), flush=True)
                 os.makedirs(new.parent, exist_ok=True)
                 with old.open('r') as fin:
                     with new.open('w') as fout:
@@ -87,7 +87,7 @@ def main():
     def exclude(path):
         return any(e.search(path.as_posix()) is not None for e in excludes)
 
-    print('\nSUBSTITUTIONS:')
+    print('\nSUBSTITUTIONS:', flush=True)
     pairs = []
     for line in sys.stdin:
         old_store_path = line.strip()
@@ -96,7 +96,7 @@ def main():
         pairs.append((old_store_path, new_store_path))
         print('{} -> {}'.format(old_store_path, new_store_path))
 
-    print('\nPROGRESS:')
+    print('\nPROGRESS:', flush=True)
     nix2go(out, exclude, pairs)
 
 
