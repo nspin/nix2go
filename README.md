@@ -22,7 +22,7 @@ For example, given the following closure:
 /nix/store/qc84dvliy1dzpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
 /nix/store/qrxs7sabhqcr3j9ai0j0cp58zfnny0jz-coreutils-8.29
 ```
-create the following bundle of directories with no dependencies on the Nix store:
+`nix2go.bundle` creates the following bundle of directories with no dependencies on the Nix store:
 ```
 /tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70
 /tmp/nothingtoseehere/m2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
