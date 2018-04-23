@@ -1,6 +1,10 @@
 # nix2go
 
-Prepare a Nix closure to run somewhere other than the Nix store.
+Dropping tools into an arbitrary environment is hard.
+Compiling them statically can be challenging or just unfeasable, and getting all of the necessary libraries and other runtime dependencies in the right place when standard locations won't work is a pain.
+Nix provides an elegant solution to these problems.
+
+This repository contains the files necessary to prepare a Nix closure to run somewhere other than the Nix store by substituting Nix store paths in Nix outputs using a user-supplied Python function.
 
 For example, given the following closure:
 
@@ -34,9 +38,69 @@ create the following bundle of directories with no dependencies on the Nix store
 /tmp/nothingtoseehere/r3j9ai0j0cp58zfnny0jz-coreutils-8.29
 ```
 
-It works by substituting Nix store paths in Nix outputs using a user-supplied Python function.
+## Simple Example
 
-## Example
+
+`exmaple.nix`:
+```
+with import <nixpkgs> {};
+
+let
+
+  nix2go = callPackages ./. {};
+
+in rec {
+
+  entry = nix2go.setup "${busybox}/bin/ash" [ busybox nmap tcpdump cowsay ];
+
+  bundle = nix2go.bundle {
+    rootPaths = [ entry ];
+    script = ./example.py;
+    excludes = [ "/man/" "/doc/" ];
+  };
+
+}
+```
+`example.py`
+```
+def f(x):
+    prefix = '/tmp/nothingtoseehere/'
+    return prefix + x[len(prefix):]
+```
+
+```
+>>> bundle=$(nix-build example.nix -A bundle)
+>>> echo $bundle
+/nix/store/7q59cm4w9l3v6qx94clb62pf49rrlc4p-nix2go-bundle
+>>> ls $bundle/tmp/nothingtoseehere/ | cat
+43j2ln309qg7i4vivflz5-libpcap-1.8.1
+5k0i1ys2bba3dsp1cqnhh-glibc-2.26-131
+7cvrsqa3s307rqy7rrckn-cowsay-3.03+dfsg1-16
+7r371fp5p42p4acmv297d-bash-4.4-p19
+gkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
+gywzgvysws4y2lx7w99qq-entry.sh
+j10dz99467djx4rplg32b-perl-5.24.3
+m2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
+p8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
+r3j9ai0j0cp58zfnny0jz-coreutils-8.29
+rnlvqhxfak0ddrm8s50hy-nmap-7.70
+z4qpgcbqhvavnbdnf8k6c-attr-2.4.47
+zc9q82ylwcgwci7jqwzfz-acl-2.2.52
+zpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
+```
+
+Move the contents of `$bundle` to another environment.
+Perhaps a server or device in a network you wish to explore...
+
+Now execute `/tmp/nothingtoseehere/gywzgvysws4y2lx7w99qq-entry.sh` on that server or device, and voila:
+```
+/ # which nmap
+/tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70/bin/nmap
+```
+
+>>> ./test-bundle.sh /tmp/nothingtoseehere $bundle "$entry"
+
+## Another Example
 
 ```
 >>> # build "empty" image (you can't actually run "scratch")
