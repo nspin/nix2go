@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from subprocess import Popen, PIPE
 from argparse import ArgumentParser
-from collections import defaultdict
 from importlib.util import spec_from_file_location, module_from_spec
 
 
