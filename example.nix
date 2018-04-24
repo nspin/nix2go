@@ -6,7 +6,7 @@ let
 
 in rec {
 
-  entry = nix2go.setup "${busybox}/bin/ash" [ busybox nmap tcpdump cowsay ];
+  entry = nix2go.setup "${busybox}/bin/ash" [ busybox nmap tcpdump bettercap ];
 
   bundle = nix2go.bundle {
     rootPaths = [ entry ];

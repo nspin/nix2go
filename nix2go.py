@@ -24,36 +24,33 @@ def nix2go(out, exclude, pairs):
                 os.makedirs(new.parent, exist_ok=True)
                 old_targ = os.readlink(old)
                 new_targ = old_targ
-                if Path(old_targ).is_absolute():
-                    for old_, new_ in pairs:
-                        old_targ.replace(old_, new_)
-                # new.symlink_to(new_targ) # ?
-                os.symlink(new_targ, new)
+                for old_, new_ in pairs:
+                    old_targ.replace(old_.decode('ascii'), new_.decode('ascii'))
+                new.symlink_to(new_targ) # ?
+                # os.symlink(new_targ, new)
             elif old.is_file():
                 print('file    : {} -> {}'.format(old, new), flush=True)
                 os.makedirs(new.parent, exist_ok=True)
-                with old.open('r') as fin:
-                    with new.open('w') as fout:
-                        pipes(pairs, fin, fout)
+                with old.open('rb') as fin:
+                    with new.open('wb') as fout:
+                        stream_replace(pairs, fin, fout)
                 if old.stat().st_mode & 0o100: # 0o111?
                     new.chmod(new.stat().st_mode | 0o111)
             elif old.is_dir():
                 for child in old.iterdir():
                     f(child, new/child.relative_to(old))
-            else:
-                assert False
 
     for old, new in pairs:
-        f(Path(old), out/Path(new).relative_to('/'))
+        f(Path(old.decode('ascii')), out/Path(new.decode('ascii')).relative_to('/'))
 
 
-def pipes(pairs, fin, fout):
+def stream_replace(pairs, fin, fout):
     assert len(pairs)
     stdin = fin
     procs = []
     for i, (old, new) in enumerate(pairs):
         stdout = fout if i + 1 == len(pairs) else PIPE
-        proc = Popen(mk_args(old, new),
+        proc = Popen(['perl', '-pe', 's|{}|{}|g'.format(mk_regex(old), mk_regex(new))],
             stdin=stdin,
             stdout=stdout,
             )
@@ -63,11 +60,8 @@ def pipes(pairs, fin, fout):
         proc.wait()
         assert not proc.returncode
 
-def to_regex(literal):
-    return ''.join(r'\x{:02x}'.format(ord(c)) for c in literal)
-
-def mk_args(old, new):
-    return ['perl', '-pe', 's|{}|{}|g'.format(to_regex(old), to_regex(new))]
+def mk_regex(literal):
+    return ''.join(r'\x{:02x}'.format(c) for c in literal)
 
 
 def main():
@@ -94,7 +88,7 @@ def main():
         new_store_path = f(old_store_path)
         assert len(old_store_path) == len(new_store_path)
         assert new_store_path not in seen
-        pairs.append((old_store_path, new_store_path))
+        pairs.append((old_store_path.encode('ascii'), new_store_path.encode('ascii')))
         seen.add(new_store_path)
         print('{} -> {}'.format(old_store_path, new_store_path))
 
@@ -104,3 +98,65 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# Pure Python implementation of stream_replace.
+# Unfortunately, Perl is WAY faster :(
+
+# def stream_replace(pairs, fin, fout):
+#     def fin_it():
+#         while True:
+#             chunk = fin.read(0x1000)
+#             if chunk:
+#                 yield chunk
+#             else:
+#                 break
+#     it = fin_it()
+#     for x, y in pairs:
+#         it = replace(x, y, filter(None, it))
+#     for chunk in filter(None, it):
+#         fout.write(chunk)
+
+# def replace(x, y, it):
+#     buf = []
+#     start_ix = 0
+#     total_len = 0
+#     def match():
+#         i = 0
+#         j = start_ix
+#         for chunk in buf:
+#             while j < len(chunk):
+#                 if i == len(x):
+#                     return True
+#                 if chunk[j] != x[i]:
+#                     return False
+#                 j += 1
+#                 i += 1
+#             j = 0
+#         return False
+#     while True:
+#         while total_len - start_ix < len(x):
+#             try:
+#                 chunk = next(it)
+#             except StopIteration:
+#                 yield from buf
+#                 return
+#             total_len += len(chunk)
+#             buf.append(chunk)
+#         if match():
+#             yield buf[0][:start_ix]
+#             yield y
+#             leftover = total_len - start_ix - len(x)
+#             start_ix = 0
+#             if leftover == 0:
+#                 buf = []
+#                 total_len = 0
+#             else:
+#                 buf = [buf[-1][-leftover:]]
+#                 total_len = len(buf[0])
+#         else:
+#             start_ix += 1
+#             if start_ix == len(buf[0]):
+#                 yield buf.pop(0)
+#                 total_len -= start_ix
+#                 start_ix = 0

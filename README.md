@@ -1,7 +1,8 @@
 # nix2go
 
-Dropping tools into an arbitrary environment is hard.
-Compiling them statically can be challenging or just unfeasable, and getting all of the necessary libraries and other runtime dependencies in the right place when standard locations won't work is a pain.
+Dropping tools into an arbitrary environment can be a pain.
+Many tools' build systems were not designed with static compilation in mind, and other tools require non-binary runtime files (e.g. Python or nmap) anyways.
+Ensuring all of the necessary libraries and other runtime dependencies in nonstandard locations can be found in the environmnet is no fun at all.
 Nix provides an elegant solution to these problems.
 
 This repository contains the files necessary to prepare a Nix closure to run somewhere other than the Nix store by substituting Nix store paths in Nix outputs using a user-supplied Python function.
@@ -9,37 +10,42 @@ This repository contains the files necessary to prepare a Nix closure to run som
 For example, given the following closure:
 
 ```
-/nix/store/0m6i66q8lf3rnlvqhxfak0ddrm8s50hy-nmap-7.70
-/nix/store/4d4h3iryz4lm2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
-/nix/store/7dk9vv9ns2sp8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
-/nix/store/7y4vpnf777743j2ln309qg7i4vivflz5-libpcap-1.8.1
 /nix/store/84h2zni7h805k0i1ys2bba3dsp1cqnhh-glibc-2.26-131
-/nix/store/9npbzymd6lagkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
-/nix/store/gcnx2pb3c5sgywzgvysws4y2lx7w99qq-entry.sh
-/nix/store/ggb7k5x9855j10dz99467djx4rplg32b-perl-5.24.3
-/nix/store/hr386dzm459zc9q82ylwcgwci7jqwzfz-acl-2.2.52
+/nix/store/4d4h3iryz4lm2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
 /nix/store/q1g0rl8zfmz7r371fp5p42p4acmv297d-bash-4.4-p19
+/nix/store/7y4vpnf777743j2ln309qg7i4vivflz5-libpcap-1.8.1
 /nix/store/qc84dvliy1dzpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
-/nix/store/qrxs7sabhqcr3j9ai0j0cp58zfnny0jz-coreutils-8.29
+/nix/store/0m6i66q8lf3rnlvqhxfak0ddrm8s50hy-nmap-7.70
+/nix/store/5bwa088n5wmh2glssyqc4anin8jqzqzm-tzdata-2017c
+/nix/store/7dk9vv9ns2sp8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
+/nix/store/9npbzymd6lagkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
+/nix/store/b36lm9ark178zm3aqr6py7jvjirabai7-libmnl-1.0.4
+/nix/store/fsmv83b29z7yji4h9g5ap6x90sdjr4wj-iana-etc-20180108
+/nix/store/hj8ccijzngiragn6ljw49rvdaj3lh8ci-libnfnetlink-1.0.1
+/nix/store/pwrykr9g779y14lqxzc28lgx825qvx88-libnetfilter_queue-1.0.3
+/nix/store/pksk16jg2jkp2kv2v16k26ahvx0d7f6n-bettercap-2.4-bin
+/nix/store/xswwka30pm521sm8c2npiqha6rxr4nxa-entry.sh
 ```
-`nix2go.bundle` creates the following bundle of directories with no dependencies on the Nix store:
+`nix2go.bundle` creates the following bundle of directories, each containing patched binaries, with no dependencies on the Nix store:
 ```
-/tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70
-/tmp/nothingtoseehere/m2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
-/tmp/nothingtoseehere/p8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
-/tmp/nothingtoseehere/43j2ln309qg7i4vivflz5-libpcap-1.8.1
 /tmp/nothingtoseehere/5k0i1ys2bba3dsp1cqnhh-glibc-2.26-131
-/tmp/nothingtoseehere/gkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
-/tmp/nothingtoseehere/gywzgvysws4y2lx7w99qq-entry.sh
-/tmp/nothingtoseehere/j10dz99467djx4rplg32b-perl-5.24.3
-/tmp/nothingtoseehere/zc9q82ylwcgwci7jqwzfz-acl-2.2.52
+/tmp/nothingtoseehere/m2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
 /tmp/nothingtoseehere/7r371fp5p42p4acmv297d-bash-4.4-p19
+/tmp/nothingtoseehere/43j2ln309qg7i4vivflz5-libpcap-1.8.1
 /tmp/nothingtoseehere/zpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
-/tmp/nothingtoseehere/r3j9ai0j0cp58zfnny0jz-coreutils-8.29
+/tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70
+/tmp/nothingtoseehere/h2glssyqc4anin8jqzqzm-tzdata-2017c
+/tmp/nothingtoseehere/p8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
+/tmp/nothingtoseehere/gkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
+/tmp/nothingtoseehere/8zm3aqr6py7jvjirabai7-libmnl-1.0.4
+/tmp/nothingtoseehere/yji4h9g5ap6x90sdjr4wj-iana-etc-20180108
+/tmp/nothingtoseehere/ragn6ljw49rvdaj3lh8ci-libnfnetlink-1.0.1
+/tmp/nothingtoseehere/y14lqxzc28lgx825qvx88-libnetfilter_queue-1.0.3
+/tmp/nothingtoseehere/p2kv2v16k26ahvx0d7f6n-bettercap-2.4-bin
+/tmp/nothingtoseehere/21sm8c2npiqha6rxr4nxa-entry.sh
 ```
 
 ## Simple Example
-
 
 ```
 >>> cat example.nix
@@ -51,7 +57,7 @@ let
 
 in rec {
 
-  entry = nix2go.setup "${busybox}/bin/ash" [ busybox nmap tcpdump cowsay ];
+  entry = nix2go.setup "${busybox}/bin/ash" [ busybox nmap tcpdump bettercap ];
 
   bundle = nix2go.bundle {
     rootPaths = [ entry ];
@@ -66,33 +72,58 @@ def f(x):
     prefix = '/tmp/nothingtoseehere/'
     return prefix + x[len(prefix):]
 
+>>> entry=$(nix-build example.nix -A entry)
+
+>>> nix-store -qR $entry
+/nix/store/84h2zni7h805k0i1ys2bba3dsp1cqnhh-glibc-2.26-131
+/nix/store/4d4h3iryz4lm2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
+/nix/store/q1g0rl8zfmz7r371fp5p42p4acmv297d-bash-4.4-p19
+/nix/store/7y4vpnf777743j2ln309qg7i4vivflz5-libpcap-1.8.1
+/nix/store/qc84dvliy1dzpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
+/nix/store/0m6i66q8lf3rnlvqhxfak0ddrm8s50hy-nmap-7.70
+/nix/store/5bwa088n5wmh2glssyqc4anin8jqzqzm-tzdata-2017c
+/nix/store/7dk9vv9ns2sp8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
+/nix/store/9npbzymd6lagkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
+/nix/store/b36lm9ark178zm3aqr6py7jvjirabai7-libmnl-1.0.4
+/nix/store/fsmv83b29z7yji4h9g5ap6x90sdjr4wj-iana-etc-20180108
+/nix/store/hj8ccijzngiragn6ljw49rvdaj3lh8ci-libnfnetlink-1.0.1
+/nix/store/pwrykr9g779y14lqxzc28lgx825qvx88-libnetfilter_queue-1.0.3
+/nix/store/pksk16jg2jkp2kv2v16k26ahvx0d7f6n-bettercap-2.4-bin
+/nix/store/xswwka30pm521sm8c2npiqha6rxr4nxa-entry.sh
+
 >>> bundle=$(nix-build example.nix -A bundle)
+
 >>> echo $bundle
 /nix/store/7q59cm4w9l3v6qx94clb62pf49rrlc4p-nix2go-bundle
->>> ls $bundle/tmp/nothingtoseehere/ | cat
+
+>>> ls $bundle/tmp/nothingtoseehere/
+21sm8c2npiqha6rxr4nxa-entry.sh
 43j2ln309qg7i4vivflz5-libpcap-1.8.1
 5k0i1ys2bba3dsp1cqnhh-glibc-2.26-131
-7cvrsqa3s307rqy7rrckn-cowsay-3.03+dfsg1-16
 7r371fp5p42p4acmv297d-bash-4.4-p19
+8zm3aqr6py7jvjirabai7-libmnl-1.0.4
 gkk5cvk8f2wqa2v5ingwl-tcpdump-4.9.2
-gywzgvysws4y2lx7w99qq-entry.sh
-j10dz99467djx4rplg32b-perl-5.24.3
+h2glssyqc4anin8jqzqzm-tzdata-2017c
 m2vsg58bx0qfyr11nq5sx-openssl-1.0.2o
+p2kv2v16k26ahvx0d7f6n-bettercap-2.4-bin
 p8r1xhwwf3ahj9k2yg1a9-busybox-1.28.1
-r3j9ai0j0cp58zfnny0jz-coreutils-8.29
+ragn6ljw49rvdaj3lh8ci-libnfnetlink-1.0.1
 rnlvqhxfak0ddrm8s50hy-nmap-7.70
-z4qpgcbqhvavnbdnf8k6c-attr-2.4.47
-zc9q82ylwcgwci7jqwzfz-acl-2.2.52
+y14lqxzc28lgx825qvx88-libnetfilter_queue-1.0.3
+yji4h9g5ap6x90sdjr4wj-iana-etc-20180108
 zpidw10yvpi3di5f0q4vj-gcc-7.3.0-lib
 ```
 
 Move the contents of `$bundle` to another environment.
 Perhaps a server or device in a network you wish to explore...
 
-Now execute `/tmp/nothingtoseehere/gywzgvysws4y2lx7w99qq-entry.sh` on that server or device, and voila:
+Now execute `/tmp/nothingtoseehere/21sm8c2npiqha6rxr4nxa-entry.sh` on that server or device, and voila:
 ```
-/ # which nmap
+>>> which nmap
 /tmp/nothingtoseehere/rnlvqhxfak0ddrm8s50hy-nmap-7.70/bin/nmap
+>>> nmap -v -A scanme.nmap.org
+Starting Nmap 7.70 ( https://nmap.org ) at 2018-04-23 04:31 UTC
+...
 ```
 
 ## Another Example
